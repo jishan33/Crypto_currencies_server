@@ -49,14 +49,17 @@ const cryptoCurrenciesSchema = new mongoose.Schema({
 });
 
 const currencies = mongoose.model("Crypto_currencies", cryptoCurrenciesSchema);
-const adjustTime = (date) => {
-  return moment(date).add(1, "day")._d;
+
+const convertToUTC = (date) => {
+  return moment.utc(date);
 };
 
 const getDataFromDate = async (date) => {
-  return await currencies.find({
-    Date: { $gte: new Date(date), $lte: new Date(date) },
-  }).lean();
+  return await currencies
+    .find({
+      Date: { $gte: new Date(date), $lte: new Date(date) },
+    })
+    .lean();
 };
 
 const getOpenPriceFromDate = (date) =>
@@ -70,7 +73,7 @@ const calculatePriceDifferenceBetweenDates = (startDate, endDate) => {
 
 router.get("/", async (req, res) => {
   try {
-    const date = adjustTime(req.query.date);
+    const date = convertToUTC(req.query.date);
 
     const oneDayBefore = moment(date).subtract(1, "day")._d;
     const sevenDaysBefore = moment(date).subtract(7, "day")._d;
@@ -95,30 +98,21 @@ router.get("/", async (req, res) => {
       priceSelectedDate
     );
 
-    for (let i = 0; i < dataSelectedDate; i++) {
-      (dataSelectedDate["24h"] = priceDifference1Day[i]),
-        (dataSelectedDate["7d"] = priceDifference7Days[i]);
-    }
-    const response = dataSelectedDate.map((value, index) => {
-      return {
-        ...value,
-        '24h': priceDifference1Day[index],
-        '7d': priceDifference7Days[index]
-      }
-    });
-    
-    console.log(response);
-    // var response = [
-    //   {
-    //     "currency": "litecoin",
-    //     "price": 45.38,
-    //     "24h":,
-    //     "7d":,
-    //     "24h Volume": ,
-    //     "Market_Cap": ,
-    //   }
-    // ]
-
+    const response = dataSelectedDate
+      .map((value, index) => {
+      
+        return {
+          ...value,
+          "24h": priceDifference1Day[index],
+          "7d": priceDifference7Days[index],
+        };
+      })
+      .sort(
+        (a, b) =>
+          Number(b["Market Cap"].replace(/,/g, "")) -
+          Number(a["Market Cap"].replace(/,/g, ""))
+      );
+console.log(response)
     res.send(response);
   } catch (err) {
     console.error(err);

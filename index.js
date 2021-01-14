@@ -4,7 +4,7 @@ const dbDebugger = require("debug")("app:db");
 const startupDebugger = require("debug")("app:startup");
 const express = require("express");
 const app = express();
-const cryptoCurrencies = require("./cryptoCurrencies");
+const cryptoCurrencies = require("./app/cryptoCurrencies");
 
 mongoose
   .connect("mongodb://localhost/code_test", {

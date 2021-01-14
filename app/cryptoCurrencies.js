@@ -51,7 +51,7 @@ const cryptoCurrenciesSchema = new mongoose.Schema({
 const currencies = mongoose.model("Crypto_currencies", cryptoCurrenciesSchema);
 
 const convertToUTC = (date) => {
-  return moment.utc(date);
+  return moment.utc(date)._d;
 };
 
 const getDataFromDate = async (date) => {
@@ -67,14 +67,14 @@ const getOpenPriceFromDate = (date) =>
 
 const calculatePriceDifferenceBetweenDates = (startDate, endDate) => {
   return endDate.map((value, index) => {
-    return ((startDate[index] - value) / value).toFixed(1) + " %";
+    return ((startDate[index] - value)*100 / value).toFixed(1) + " %";
   });
 };
 
 router.get("/", async (req, res) => {
   try {
+    
     const date = convertToUTC(req.query.date);
-
     const oneDayBefore = moment(date).subtract(1, "day")._d;
     const sevenDaysBefore = moment(date).subtract(7, "day")._d;
 
@@ -112,8 +112,8 @@ router.get("/", async (req, res) => {
           Number(b["Market Cap"].replace(/,/g, "")) -
           Number(a["Market Cap"].replace(/,/g, ""))
       );
-console.log(response)
-    res.send(response);
+
+    res.status(200).send(response);
   } catch (err) {
     console.error(err);
   }

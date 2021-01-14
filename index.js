@@ -1,7 +1,6 @@
 const mongoose = require("mongoose");
 const cors = require("cors");
 const dbDebugger = require("debug")("app:db");
-const startupDebugger = require("debug")("app:startup");
 const express = require("express");
 const app = express();
 const cryptoCurrencies = require("./app/cryptoCurrencies");

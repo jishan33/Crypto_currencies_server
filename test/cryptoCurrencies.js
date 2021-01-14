@@ -25,8 +25,8 @@ describe("CryptoCurrencies Api", () => {
         .request(url)
         .get("/crypto_currencies")
         .end((err, response) => {
-          response.body.should.be.a("array");
-          response.body.length.should.be.eq(0);
+          response.should.have.status(400);
+
           done();
         });
     });

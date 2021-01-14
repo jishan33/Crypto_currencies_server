@@ -1,7 +1,6 @@
 const mongoose = require("mongoose");
 const express = require("express");
 const router = express.Router();
-const dbDebugger = require("debug")("app:db");
 const moment = require("moment");
 
 const cryptoCurrenciesSchema = new mongoose.Schema({
@@ -67,13 +66,14 @@ const getOpenPriceFromDate = (date) =>
 
 const calculatePriceDifferenceBetweenDates = (startDate, endDate) => {
   return endDate.map((value, index) => {
-    return ((startDate[index] - value)*100 / value).toFixed(1) + " %";
+    return (((startDate[index] - value) * 100) / value).toFixed(1) + " %";
   });
 };
 
 router.get("/", async (req, res) => {
   try {
-    
+    if (!req.query.date) return res.sendStatus(400);
+
     const date = convertToUTC(req.query.date);
     const oneDayBefore = moment(date).subtract(1, "day")._d;
     const sevenDaysBefore = moment(date).subtract(7, "day")._d;
@@ -100,7 +100,6 @@ router.get("/", async (req, res) => {
 
     const response = dataSelectedDate
       .map((value, index) => {
-      
         return {
           ...value,
           "24h": priceDifference1Day[index],

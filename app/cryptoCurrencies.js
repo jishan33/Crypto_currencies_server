@@ -61,8 +61,8 @@ const getDataFromDate = async (date) => {
     .lean();
 };
 
-const getOpenPriceFromDate = (date) =>
-  date.map((item) => Number(item.Open.replace(/,/g, "")));
+const getClosePriceFromDate = (date) =>
+  date.map((item) => Number(item.Close.replace(/,/g, "")));
 
 const calculatePriceDifferenceBetweenDates = (startDate, endDate) => {
   return endDate.map((value, index) => {
@@ -77,16 +77,24 @@ router.get("/", async (req, res) => {
     const date = convertToUTC(req.query.date);
     const oneDayBefore = moment(date).subtract(1, "day")._d;
     const sevenDaysBefore = moment(date).subtract(7, "day")._d;
+    const oneMonthBefore = moment(date).subtract(1, "month")._d;
 
     const currenciesData = await currencies.find();
 
     const dataSelectedDate = await getDataFromDate(date);
     const data1DayBefore = await getDataFromDate(oneDayBefore);
     const data7DaysBefore = await getDataFromDate(sevenDaysBefore);
+    const dataOneMonthBefore = await getDataFromDate(oneMonthBefore);
 
-    const priceSelectedDate = getOpenPriceFromDate(dataSelectedDate);
-    const price1dayBefore = getOpenPriceFromDate(data1DayBefore);
-    const price7DaysBefore = getOpenPriceFromDate(data7DaysBefore);
+    const priceSelectedDate = getClosePriceFromDate(dataSelectedDate);
+    const price1dayBefore = getClosePriceFromDate(data1DayBefore);
+    const price7DaysBefore = getClosePriceFromDate(data7DaysBefore);
+    const priceOneMonthBefore = getClosePriceFromDate(dataOneMonthBefore);
+
+    const priceDifference1Month = await calculatePriceDifferenceBetweenDates(
+      priceOneMonthBefore,
+      priceSelectedDate
+    );
 
     const priceDifference7Days = await calculatePriceDifferenceBetweenDates(
       price7DaysBefore,
@@ -104,6 +112,7 @@ router.get("/", async (req, res) => {
           ...value,
           "24h": priceDifference1Day[index],
           "7d": priceDifference7Days[index],
+          "1m": priceDifference1Month[index],
         };
       })
       .sort(

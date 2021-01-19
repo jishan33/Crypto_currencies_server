@@ -56,7 +56,7 @@ const convertToUTC = (date) => {
 const getDataFromDate = async (date) => {
   return await currencies
     .find({
-      Date: { $gte: new Date(date), $lte: new Date(date) },
+      Date: { $eq: new Date(date) },
     })
     .lean();
 };
@@ -78,8 +78,6 @@ router.get("/", async (req, res) => {
     const oneDayBefore = moment(date).subtract(1, "day")._d;
     const sevenDaysBefore = moment(date).subtract(7, "day")._d;
     const oneMonthBefore = moment(date).subtract(1, "month")._d;
-
-    const currenciesData = await currencies.find();
 
     const dataSelectedDate = await getDataFromDate(date);
     const data1DayBefore = await getDataFromDate(oneDayBefore);

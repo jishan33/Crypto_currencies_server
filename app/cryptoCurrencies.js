@@ -70,39 +70,29 @@ const calculatePriceDifferenceBetweenDates = (startDate, endDate) => {
   });
 };
 
+const getPriceDifferenceFor = async (date, number, unit) => {
+  const dataSelectedDate = await getDataFromDate(date);
+  const priceSelectedDate = getClosePriceFromDate(dataSelectedDate);
+
+  const numberOfUnitBefore = await moment(date).subtract(number, unit)._d;
+  const dataNumberOfUnitBefore = await getDataFromDate(numberOfUnitBefore);
+  const priceNumberOfUnitBefore = getClosePriceFromDate(dataNumberOfUnitBefore);
+  return calculatePriceDifferenceBetweenDates(
+    priceNumberOfUnitBefore,
+    priceSelectedDate
+  );
+};
+
 router.get("/", async (req, res) => {
   try {
     if (!req.query.date) return res.sendStatus(400);
 
     const date = convertToUTC(req.query.date);
-    const oneDayBefore = moment(date).subtract(1, "day")._d;
-    const sevenDaysBefore = moment(date).subtract(7, "day")._d;
-    const oneMonthBefore = moment(date).subtract(1, "month")._d;
-
     const dataSelectedDate = await getDataFromDate(date);
-    const data1DayBefore = await getDataFromDate(oneDayBefore);
-    const data7DaysBefore = await getDataFromDate(sevenDaysBefore);
-    const dataOneMonthBefore = await getDataFromDate(oneMonthBefore);
 
-    const priceSelectedDate = getClosePriceFromDate(dataSelectedDate);
-    const price1dayBefore = getClosePriceFromDate(data1DayBefore);
-    const price7DaysBefore = getClosePriceFromDate(data7DaysBefore);
-    const priceOneMonthBefore = getClosePriceFromDate(dataOneMonthBefore);
-
-    const priceDifference1Month = await calculatePriceDifferenceBetweenDates(
-      priceOneMonthBefore,
-      priceSelectedDate
-    );
-
-    const priceDifference7Days = await calculatePriceDifferenceBetweenDates(
-      price7DaysBefore,
-      priceSelectedDate
-    );
-
-    const priceDifference1Day = await calculatePriceDifferenceBetweenDates(
-      price1dayBefore,
-      priceSelectedDate
-    );
+    const priceDifference1Day = await getPriceDifferenceFor(date, 1, "day");
+    const priceDifference7Days = await getPriceDifferenceFor(date, 7, "day");
+    const priceDifference1Month = await getPriceDifferenceFor(date, 1, "month");
 
     const response = dataSelectedDate
       .map((value, index) => {
